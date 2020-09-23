@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ['ResourceInfo', 'CollectorVerifyInfo']
+__all__ = ['ResourceInfo', 'CollectorVerifyInfo', 'PluginInfo']
 
 import functools
 from spaceone.api.inventory.plugin import collector_pb2

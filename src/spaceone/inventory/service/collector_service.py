@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import random
+import copy
+import time
 
 from spaceone.core.error import *
 from spaceone.core.service import *
 from spaceone.core.pygrpc.message_type import *
 
 from spaceone.inventory.error import *
-from spaceone.inventory.manager.collector_manager import CollectorManager
+from spaceone.inventory.service.aws_ec2 import aws_ec2
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -97,7 +100,6 @@ class CollectorService(BaseService):
         Raises:
              ERROR_VERIFY_FAILED:
         """
-        manager = self.locator.get_manager('CollectorManager')
         options = params['options']
         secret_data = params['secret_data']
         return {}
@@ -118,13 +120,78 @@ class CollectorService(BaseService):
         options = params['options']
         secret_data = params['secret_data']
         filters = params['filter']
-        return manager.list_resources(options, secret_data, filters)
+        return self._execute(options, secret_data, filters)
 
 
-    def _create_resources(options, secret_data, filters):
+    def _execute(self, options, secret_data, filters):
+        """ Secret sends various parameters
+
+        secret_data(dict) : {
+            'spaceone_api_key': str,
+            'param_int_1': int,
+            'param_int_2': int,
+            'param_str_1': str,
+            'param_str_2': str
+        }
+        """
         results = []
-        res = {}
+        cmd = secret_data.get('spaceone_api_key', 'create')
+        param_int_1 = secret_data.get('param_int_1', 10)
+        param_int_2 = secret_data.get('param_int_2', 0)
+        param_str_1 = secret_data.get('param_str_1', '')
+        param_str_2 = secret_data.get('param_str_2', '')
+
+        # Parse command
+        if cmd == "create":
+            results = self._create(param_int_1, param_int_2, param_str_1)
+        elif cmd == "create_with_no_match":
+            results = self._create_with_no_match(param_int_1, param_int_2, param_str_1)
         return results
 
+    def _create(self, num_of_resources, response_after, provider):
+        results = []
+        res = aws_ec2
+        if provider == 'aws':
+            res = aws_ec2
+        else:
+            res = aws_ec2
+
+        for i in range(int(num_of_resources)):
+            id = random.randrange(100000, 200000)
+            instance_id = f'i-{id}'
+            print(instance_id)
+            res_data = copy.deepcopy(res)
+            resource = res_data['resource']
+            resource.update({'reference':
+                                {'resource_id': f'arn:aws:ec2:test-region:11111111111:instance/{instance_id}'},
+                             'provider': provider
+                             })
+            res_data['resource'] = resource
+            results.append(res_data)
+        time.sleep(response_after)
+        return results
+
+    def _create_with_no_match(self, num_of_resources, response_after, provider):
+        results = []
+        res = aws_ec2
+        if provider == 'aws':
+            res = aws_ec2
+        else:
+            res = aws_ec2
+
+        for i in range(int(num_of_resources)):
+            id = random.randrange(100000, 200000)
+            instance_id = f'i-{id}'
+            print(instance_id)
+            res_data = copy.deepcopy(res)
+            resource = res_data['resource']
+            resource.update({'reference':
+                                {'resource_id': f'arn:aws:ec2:test-region:11111111111:instance/{instance_id}'},
+                             'provider': provider
+                             })
+            res_data['resource'] = resource
+            results.append(res_data)
+        time.sleep(response_after)
+        return results
 
 

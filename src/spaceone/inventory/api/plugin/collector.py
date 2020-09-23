@@ -32,16 +32,16 @@ class Collector(BaseAPI, collector_pb2_grpc.CollectorServicer):
         with self.locator.get_service('CollectorService', metadata) as collector_svc:
             #response = ['i-1','i-2','i-3','i-4','i-5']
             resource_stream = collector_svc.list_resources(params)
+            count = 0
             for resource in resource_stream:
+                count += 1
                 res = {
                     'state': 'SUCCESS',
                     'message': '',
                     'resource_type': 'inventory.Server',
                     'match_rules': change_struct_type(resource['match_rules']),
                     'resource': change_struct_type(resource['resource'])
-
                 }
-                #print(res)
-                _LOGGER.debug(f'[collect] Resource: {res}')
+                print(f'count: {count}')
                 yield self.locator.get_info('ResourceInfo', res)
 
